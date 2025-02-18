@@ -97,7 +97,8 @@ public class JettyServer {
         httpConfig.setSendDateHeader(false);
         httpConfig.setSendXPoweredBy(false);
 
-        // make sure X-Forwarded-For headers are picked up if set (e.g. by a load balancer)
+        // make sure X-Forwarded-For headers are picked up if set (e.g. by a load
+        // balancer)
         // https://github.com/steve-community/steve/pull/570
         httpConfig.addCustomizer(new ForwardedRequestCustomizer());
 
@@ -120,11 +121,20 @@ public class JettyServer {
     }
 
     private ServerConnector httpConnector(HttpConfiguration httpConfig) {
-        // === jetty-http.xml ===
         ServerConnector http = new ServerConnector(server, new HttpConnectionFactory(httpConfig));
-        http.setHost(CONFIG.getJetty().getServerHost());
-        http.setPort(CONFIG.getJetty().getHttpPort());
+
+        // On Heroku, bind to 0.0.0.0 and use the PORT environment variable if
+        // available.
+        String portEnv = System.getenv("PORT");
+        int port = portEnv != null ? Integer.parseInt(portEnv) : CONFIG.getJetty().getHttpPort();
+
+        // For Heroku, override host to 0.0.0.0 so it's reachable externally.
+        String host = System.getenv("PORT") != null ? "0.0.0.0" : CONFIG.getJetty().getServerHost();
+
+        http.setHost(host);
+        http.setPort(port);
         http.setIdleTimeout(IDLE_TIMEOUT);
+
         return http;
     }
 
@@ -198,9 +208,9 @@ public class JettyServer {
         }
 
         return Arrays.stream(server.getConnectors())
-                     .map(JettyServer::getConnectorPath)
-                     .flatMap(Collection::stream)
-                     .collect(Collectors.toList());
+                .map(JettyServer::getConnectorPath)
+                .flatMap(Collection::stream)
+                .collect(Collectors.toList());
     }
 
     private static List<String> getConnectorPath(Connector c) {
@@ -224,14 +234,14 @@ public class JettyServer {
         String layout = "%s://%s:%d" + CONFIG.getContextPath();
 
         return ips.stream()
-                  .map(k -> String.format(layout, prefix, k, sc.getPort()))
-                  .collect(Collectors.toList());
+                .map(k -> String.format(layout, prefix, k, sc.getPort()))
+                .collect(Collectors.toList());
     }
 
     private List<String> buildList(List<String> list, boolean replaceHttp) {
         return list.stream()
-                   .map(s -> getElementPrefix(s, replaceHttp))
-                   .collect(Collectors.toList());
+                .map(s -> getElementPrefix(s, replaceHttp))
+                .collect(Collectors.toList());
     }
 
     private String getElementPrefix(String str, boolean replaceHttp) {
@@ -273,7 +283,8 @@ public class JettyServer {
 
         // https://stackoverflow.com/a/20418809
         try {
-            for (Enumeration<NetworkInterface> ifaces = NetworkInterface.getNetworkInterfaces(); ifaces.hasMoreElements();) {
+            for (Enumeration<NetworkInterface> ifaces = NetworkInterface.getNetworkInterfaces(); ifaces
+                    .hasMoreElements();) {
                 NetworkInterface iface = ifaces.nextElement();
                 for (Enumeration<InetAddress> inetAddrs = iface.getInetAddresses(); inetAddrs.hasMoreElements();) {
                     InetAddress inetAddr = inetAddrs.nextElement();
