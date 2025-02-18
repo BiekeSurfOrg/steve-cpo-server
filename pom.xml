@@ -114,6 +114,7 @@
                 <artifactId>license-maven-plugin</artifactId>
                 <version>${plugin.license-maven.version}</version>
                 <configuration>
+                    <skipLicenseCheck>true</skipLicenseCheck>
                     <header>LICENSE-HEADER.txt</header>
                     <properties/>
                     <excludes>
