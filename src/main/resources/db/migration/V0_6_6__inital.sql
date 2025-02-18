@@ -117,6 +117,11 @@ CREATE TRIGGER `transaction_AUPD` AFTER UPDATE ON transaction FOR EACH ROW
   UPDATE user SET user.inTransaction=0 WHERE user.idTag=NEW.idTag;;
 DELIMITER ;
 
+DELIMETER ;;
+SET GLOBAL log_bin_trust_function_creators = 1;
+DELIMITER ;
+
+
 --
 -- Table structure for table `connector_metervalue`
 --

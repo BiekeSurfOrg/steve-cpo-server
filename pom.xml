@@ -419,8 +419,8 @@
                     <jdbc>
                         <driver>com.mysql.cj.jdbc.Driver</driver>
                         <url>${jdbcUrl}</url>
-                        <user>${db.user}</user>
-                        <password>${db.password}</password>
+                        <user>${env.DB_USER}</user>
+                        <password>${env.DB_PASSWORD}</password>
                     </jdbc>
 
                     <generator>
