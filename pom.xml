@@ -50,6 +50,7 @@
         <jdbcUrl>jdbc:mysql://${env.DB_IP}:${db.port}/${db.schema}?useSSL=true&amp;serverTimezone=UTC</jdbcUrl>
     </properties>
 
+
     <profiles>
         <profile>
             <id>prod</id>
