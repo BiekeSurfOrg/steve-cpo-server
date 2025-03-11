@@ -1,4 +1,4 @@
-package de.rwth.idsg.steve.web.filter;
+package de.rwth.idsg.steve.web;
 
 import jakarta.servlet.Filter;
 import jakarta.servlet.FilterChain;
