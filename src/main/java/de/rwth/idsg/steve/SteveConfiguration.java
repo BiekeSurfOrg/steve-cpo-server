@@ -45,7 +45,7 @@ public enum SteveConfiguration {
     // Dummy service path
     private final String routerEndpointPath = "/CentralSystemService";
     // Time zone for the application and database connections
-    private final String timeZoneId = "UTC";  // or ZoneId.systemDefault().getId();
+    private final String timeZoneId = "UTC"; // or ZoneId.systemDefault().getId();
 
     // -------------------------------------------------------------------------
     // main.properties
@@ -72,44 +72,45 @@ public enum SteveConfiguration {
         System.setProperty("spring.profiles.active", profile.name().toLowerCase());
 
         jetty = Jetty.builder()
-                     .serverHost(p.getString("server.host"))
-                     .gzipEnabled(p.getBoolean("server.gzip.enabled"))
-                     .httpEnabled(p.getBoolean("http.enabled"))
-                     .httpPort(p.getInt("http.port"))
-                     .httpsEnabled(p.getBoolean("https.enabled"))
-                     .httpsPort(p.getInt("https.port"))
-                     .keyStorePath(p.getOptionalString("keystore.path"))
-                     .keyStorePassword(p.getOptionalString("keystore.password"))
-                     .build();
+                .serverHost(p.getString("server.host"))
+                .gzipEnabled(p.getBoolean("server.gzip.enabled"))
+                .httpEnabled(p.getBoolean("http.enabled"))
+                .httpPort(p.getInt("http.port"))
+                .httpsEnabled(p.getBoolean("https.enabled"))
+                .httpsPort(p.getInt("https.port"))
+                .keyStorePath(p.getOptionalString("keystore.path"))
+                .keyStorePassword(p.getOptionalString("keystore.password"))
+                .build();
 
         db = DB.builder()
-               .ip(p.getString("db.ip"))
-               .port(p.getInt("db.port"))
-               .schema(p.getString("db.schema"))
-               .userName(p.getString("db.user"))
-               .password(p.getString("db.password"))
-               .sqlLogging(p.getBoolean("db.sql.logging"))
-               .build();
+                .ip(p.getString("db.ip"))
+                .port(p.getInt("db.port"))
+                .schema(p.getString("db.schema"))
+                .userName(p.getString("db.user"))
+                .password(p.getString("db.password"))
+                .sqlLogging(p.getBoolean("db.sql.logging"))
+                .build();
 
         PasswordEncoder encoder = new BCryptPasswordEncoder();
 
         auth = Auth.builder()
-                   .passwordEncoder(encoder)
-                   .userName(p.getString("auth.user"))
-                   .encodedPassword(encoder.encode(p.getString("auth.password")))
-                   .build();
+                .passwordEncoder(encoder)
+                .userName(p.getString("auth.user"))
+                .encodedPassword(encoder.encode(p.getString("auth.password")))
+                .build();
 
+        System.out.println("WebAPI Key: " + p.getOptionalString("webapi.key"));
         webApi = WebApi.builder()
-                       .headerKey(p.getOptionalString("webapi.key"))
-                       .headerValue(p.getOptionalString("webapi.value"))
-                       .build();
+                .headerKey(p.getOptionalString("webapi.key"))
+                .headerValue(p.getOptionalString("webapi.value"))
+                .build();
 
         ocpp = Ocpp.builder()
-                   .autoRegisterUnknownStations(p.getOptionalBoolean("auto.register.unknown.stations"))
-                   .chargeBoxIdValidationRegex(p.getOptionalString("charge-box-id.validation.regex"))
-                   .wsSessionSelectStrategy(
-                           WsSessionSelectStrategyEnum.fromName(p.getString("ws.session.select.strategy")))
-                   .build();
+                .autoRegisterUnknownStations(p.getOptionalBoolean("auto.register.unknown.stations"))
+                .chargeBoxIdValidationRegex(p.getOptionalString("charge-box-id.validation.regex"))
+                .wsSessionSelectStrategy(
+                        WsSessionSelectStrategyEnum.fromName(p.getString("ws.session.select.strategy")))
+                .build();
 
         validate();
     }
@@ -127,7 +128,8 @@ public enum SteveConfiguration {
             // if the property is optional, value will be null
             return fallback;
         } else if (value.startsWith("${")) {
-            // property value variables start with "${" (if maven is not used, the value will not be set)
+            // property value variables start with "${" (if maven is not used, the value
+            // will not be set)
             return fallback;
         } else {
             return value;
@@ -158,7 +160,8 @@ public enum SteveConfiguration {
     // -------------------------------------------------------------------------
 
     // Jetty configuration
-    @Builder @Getter
+    @Builder
+    @Getter
     public static class Jetty {
         private final String serverHost;
         private final boolean gzipEnabled;
@@ -175,7 +178,8 @@ public enum SteveConfiguration {
     }
 
     // Database configuration
-    @Builder @Getter
+    @Builder
+    @Getter
     public static class DB {
         private final String ip;
         private final int port;
@@ -186,21 +190,24 @@ public enum SteveConfiguration {
     }
 
     // Credentials for Web interface access
-    @Builder @Getter
+    @Builder
+    @Getter
     public static class Auth {
         private final PasswordEncoder passwordEncoder;
         private final String userName;
         private final String encodedPassword;
     }
 
-    @Builder @Getter
+    @Builder
+    @Getter
     public static class WebApi {
         private final String headerKey;
         private final String headerValue;
     }
 
     // OCPP-related configuration
-    @Builder @Getter
+    @Builder
+    @Getter
     public static class Ocpp {
         private final boolean autoRegisterUnknownStations;
         private final String chargeBoxIdValidationRegex;
