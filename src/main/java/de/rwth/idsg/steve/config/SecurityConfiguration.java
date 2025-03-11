@@ -31,6 +31,7 @@ import org.springframework.security.crypto.password.DelegatingPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
+import org.springframework.web.filter.CommonsRequestLoggingFilter;
 
 import static de.rwth.idsg.steve.SteveConfiguration.CONFIG;
 
@@ -45,10 +46,13 @@ import static de.rwth.idsg.steve.SteveConfiguration.CONFIG;
 public class SecurityConfiguration {
 
     /**
-     * Password encoding changed with spring-security 5.0.0. We either have to use a prefix before the password to
-     * indicate which actual encoder {@link DelegatingPasswordEncoder} should use [1, 2] or specify the encoder as we do.
+     * Password encoding changed with spring-security 5.0.0. We either have to use a
+     * prefix before the password to
+     * indicate which actual encoder {@link DelegatingPasswordEncoder} should use
+     * [1, 2] or specify the encoder as we do.
      *
-     * [1] https://spring.io/blog/2017/11/01/spring-security-5-0-0-rc1-released#password-storage-format
+     * [1]
+     * https://spring.io/blog/2017/11/01/spring-security-5-0-0-rc1-released#password-storage-format
      * [2] {@link PasswordEncoderFactories#createDelegatingPasswordEncoder()}
      */
     @Bean
@@ -57,44 +61,54 @@ public class SecurityConfiguration {
     }
 
     @Bean
+    public CommonsRequestLoggingFilter requestLoggingFilter() {
+        CommonsRequestLoggingFilter loggingFilter = new CommonsRequestLoggingFilter();
+        loggingFilter.setIncludeClientInfo(true);
+        loggingFilter.setIncludeQueryString(true);
+        loggingFilter.setIncludePayload(true);
+        loggingFilter.setIncludeHeaders(true);
+        loggingFilter.setMaxPayloadLength(10000);
+        return loggingFilter;
+    }
+
+    @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         final String prefix = CONFIG.getSpringManagerMapping();
 
         return http
-            .authorizeHttpRequests(
-                req -> req
-                    .requestMatchers(
-                        "/static/**",
-                        CONFIG.getCxfMapping() + "/**",
-                        WebSocketConfiguration.PATH_INFIX + "**",
-                        "/WEB-INF/views/**" // https://github.com/spring-projects/spring-security/issues/13285#issuecomment-1579097065
-                    ).permitAll()
-                    .requestMatchers(prefix + "/**").hasAuthority("ADMIN")
-            )
-            // SOAP stations are making POST calls for communication. even though the following path is permitted for
-            // all access, there is a global default behaviour from spring security: enable CSRF for all POSTs.
-            // we need to disable CSRF for SOAP paths explicitly.
-            .csrf(c -> c.ignoringRequestMatchers(CONFIG.getCxfMapping() + "/**"))
-            .sessionManagement(
-                req -> req.invalidSessionUrl(prefix + "/signin")
-            )
-            .formLogin(
-                req -> req.loginPage(prefix + "/signin").permitAll()
-            )
-            .logout(
-                req -> req.logoutUrl(prefix + "/signout")
-            )
-            .build();
+                .authorizeHttpRequests(
+                        req -> req
+                                .requestMatchers(
+                                        "/static/**",
+                                        CONFIG.getCxfMapping() + "/**",
+                                        WebSocketConfiguration.PATH_INFIX + "**",
+                                        "/WEB-INF/views/**" // https://github.com/spring-projects/spring-security/issues/13285#issuecomment-1579097065
+                                ).permitAll()
+                                .requestMatchers(prefix + "/**").hasAuthority("ADMIN"))
+                // SOAP stations are making POST calls for communication. even though the
+                // following path is permitted for
+                // all access, there is a global default behaviour from spring security: enable
+                // CSRF for all POSTs.
+                // we need to disable CSRF for SOAP paths explicitly.
+                .csrf(c -> c.ignoringRequestMatchers(CONFIG.getCxfMapping() + "/**"))
+                .sessionManagement(
+                        req -> req.invalidSessionUrl(prefix + "/signin"))
+                .formLogin(
+                        req -> req.loginPage(prefix + "/signin").permitAll())
+                .logout(
+                        req -> req.logoutUrl(prefix + "/signout"))
+                .build();
     }
 
     @Bean
     @Order(1)
-    public SecurityFilterChain apiKeyFilterChain(HttpSecurity http, ApiAuthenticationManager apiAuthenticationManager) throws Exception {
+    public SecurityFilterChain apiKeyFilterChain(HttpSecurity http, ApiAuthenticationManager apiAuthenticationManager)
+            throws Exception {
         return http.securityMatcher(CONFIG.getApiMapping() + "/**")
-            .csrf(k -> k.disable())
-            .sessionManagement(k -> k.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            .addFilter(new BasicAuthenticationFilter(apiAuthenticationManager, apiAuthenticationManager))
-            .authorizeHttpRequests(k -> k.anyRequest().authenticated())
-            .build();
+                .csrf(k -> k.disable())
+                .sessionManagement(k -> k.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .addFilter(new BasicAuthenticationFilter(apiAuthenticationManager, apiAuthenticationManager))
+                .authorizeHttpRequests(k -> k.anyRequest().authenticated())
+                .build();
     }
 }
